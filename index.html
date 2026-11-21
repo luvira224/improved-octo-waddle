@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Color wheel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDEFF3;--panel:#FFFFFF;--ink:#1B2230;--muted:#5B6577;--track:#E1E5EC;--line:#C6CCD8;
+  color-scheme:light;box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#11151D;--panel:#1A2030;--ink:#E8ECF3;--muted:#9AA4B8;--track:#262D3E;--line:#39425A;color-scheme:dark}
+}
+:root[data-theme="dark"]{--bg:#11151D;--panel:#1A2030;--ink:#E8ECF3;--muted:#9AA4B8;--track:#262D3E;--line:#39425A;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 "Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif}
+.app{max-width:980px;margin:0 auto;padding:20px 16px 40px;display:grid;gap:16px}
+header h1{margin:0;font-size:clamp(30px,7vw,44px);line-height:1.05;letter-spacing:-.025em;font-weight:700}
+header p{margin:6px 0 0;color:var(--muted)}
+.card{background:var(--panel);border-radius:20px;padding:16px}
+#wheel{display:block;width:100%;max-width:460px;height:auto;margin:0 auto}
+.track{fill:none;stroke:var(--track);stroke-width:24}
+.guide{fill:none;stroke:var(--line);stroke-width:1;stroke-dasharray:2 5}
+.cross{stroke:var(--line);stroke-width:1}
+.empty{fill:var(--muted);font-size:15px;text-anchor:middle}
+.empty.big{fill:var(--ink);font-size:20px;font-weight:600}
+.dot{stroke:var(--panel);stroke-width:3}
+.item{cursor:pointer;transition:opacity .2s}
+.item.dim{opacity:.2}
+.pop{animation:pop .45s ease-out}
+@keyframes pop{from{opacity:0}}
+.alt{width:100%;height:50px;border:2px solid var(--line);border-radius:14px;background:none;color:var(--ink);font:inherit;font-weight:600;cursor:pointer;margin-bottom:12px}
+.alt.small{height:40px;font-size:15px;margin:10px 0 14px}
+.shot{position:relative;line-height:0;text-align:center}
+#shot{display:block;margin:0 auto;max-width:100%;max-height:min(50vh,340px);width:auto;height:auto;border-radius:12px;cursor:crosshair;touch-action:none}
+.mark{position:absolute;display:none;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #1B2230;pointer-events:none}
+.entry{display:flex;gap:10px;align-items:stretch}
+input[type=color]{width:54px;height:54px;padding:0;border:0;border-radius:14px;background:none;cursor:pointer;flex:none}
+input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+input[type=color]::-webkit-color-swatch{border:0;border-radius:14px}
+input[type=color]::-moz-color-swatch{border:0;border-radius:14px}
+input[type=text]{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:2px solid transparent;border-radius:14px;padding:0 14px;height:54px;min-width:0}
+#hex{flex:1;font-variant-numeric:tabular-nums;letter-spacing:.03em}
+#name{width:100%;margin-top:10px}
+input[type=text]:focus-visible,button:focus-visible,input[type=color]:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.preview{display:flex;align-items:center;gap:10px;margin:14px 2px 0;color:var(--muted);font-size:15px}
+.chips{display:inline-flex;flex:none}
+.chips i{width:26px;height:26px;border-radius:50%;border:2px solid var(--panel);display:block}
+.chips i+i{margin-left:-9px}
+.go{width:100%;margin-top:14px;height:54px;border:0;border-radius:14px;background:var(--ink);color:var(--bg);font:inherit;font-weight:600;font-size:17px;cursor:pointer}
+.go:active{transform:scale(.98)}
+#msg{min-height:1.5em;margin:10px 2px 0;color:var(--muted);font-size:15px}
+h2{margin:14px 2px 8px;font-size:18px;font-weight:600;outline:none}
+ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.row{display:flex;align-items:center;gap:6px;border-radius:14px;background:var(--bg);border:2px solid transparent}
+.row.sel{border-color:var(--ink)}
+.pick{flex:1;min-width:0;display:flex;align-items:center;gap:12px;background:none;border:0;padding:10px 6px 10px 12px;font:inherit;color:inherit;text-align:left;cursor:pointer;border-radius:14px}
+.txt{min-width:0;display:grid}
+.txt b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.txt small{color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
+.del{flex:none;margin-right:8px;height:40px;padding:0 14px;border-radius:10px;border:2px solid var(--line);background:none;color:var(--ink);font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+.hint{color:var(--muted);margin:0 2px}
+@media (min-width:820px){
+  .app{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:20px;padding-top:32px}
+  header{grid-column:1/-1}
+  .card{padding:22px}
+}
+@media (prefers-reduced-motion:reduce){.pop{animation:none}.item{transition:none}}
+</style>
+</head>
+<body>
+<main class="app">
+  <header>
+    <h1>Color wheel</h1>
+    <p>Log a color and it lands on the wheel with its opposite.</p>
+  </header>
+
+  <section class="card" aria-label="Color wheel">
+    <svg id="wheel" viewBox="0 0 360 360" role="img" aria-label="Color wheel"></svg>
+  </section>
+
+  <section class="card">
+    <button class="alt" id="imgbtn" type="button">Pick a color from an image</button>
+    <input type="file" id="file" accept="image/*" hidden>
+    <div class="dropper" id="dropper" hidden>
+      <div class="shot"><canvas id="shot" role="img" aria-label="Your image. Tap or drag to sample a color."></canvas><span class="mark" id="mark"></span></div>
+      <button class="alt small" id="imgclear" type="button">Remove image</button>
+    </div>
+    <div class="entry">
+      <input type="color" id="picker" value="#3a7bd5" aria-label="Pick a color">
+      <input type="text" id="hex" value="#3A7BD5" maxlength="7" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Hex code">
+    </div>
+    <input type="text" id="name" placeholder="Name (optional)" maxlength="30" autocomplete="off" aria-label="Name">
+    <div class="preview"><span class="chips"><i id="pa"></i><i id="pb"></i></span><span id="ptxt"></span></div>
+    <button class="go" id="log" type="button">Log color</button>
+    <p id="msg" role="status" aria-live="polite"></p>
+    <h2 id="count" tabindex="-1"></h2>
+    <ul id="list"></ul>
+    <p class="hint" id="hint"></p>
+  </section>
+</main>
+
+<script>
+(()=>{
+const KEY='colorwheel:items';
+const CX=180,CY=180,RO=172,RI=148;
+const $=id=>document.getElementById(id);
+let items=[],selected=null,justAdded=null;
+
+try{
+  const s=JSON.parse(localStorage.getItem(KEY)||'[]');
+  if(Array.isArray(s)) items=s.filter(i=>i&&typeof i.hex==='string'&&/^#[0-9a-f]{6}$/i.test(i.hex))
+    .map(i=>({id:String(i.id||'c'+Math.random().toString(36).slice(2,8)).replace(/[^a-z0-9]/gi,''),hex:i.hex.toLowerCase(),name:String(i.name||'').slice(0,30)}));
+}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(items))}catch(e){}};
+
+function hexToHsl(hex){
+  const n=parseInt(hex.slice(1),16),r=(n>>16&255)/255,g=(n>>8&255)/255,b=(n&255)/255;
+  const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn,l=(mx+mn)/2;
+  let h=0,s=0;
+  if(d){
+    s=d/(1-Math.abs(2*l-1));
+    h=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;
+    h=(h*60+360)%360;
+  }
+  return{h,s,l};
+}
+function hslToHex(h,s,l){
+  const c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2;
+  const [r,g,b]=h<60?[c,x,0]:h<120?[x,c,0]:h<180?[0,c,x]:h<240?[0,x,c]:h<300?[x,0,c]:[c,0,x];
+  return'#'+[r,g,b].map(v=>Math.round((v+m)*255).toString(16).padStart(2,'0')).join('');
+}
+function info(hex){
+  const {h,s,l}=hexToHsl(hex),neutral=s<.04;
+  return{h,s,neutral,opp:neutral?hex:hslToHex((h+180)%360,s,l)};
+}
+function norm(v){
+  v=v.trim().replace(/^#/,'');
+  if(/^[0-9a-f]{3}$/i.test(v)) v=v.split('').map(c=>c+c).join('');
+  return/^[0-9a-f]{6}$/i.test(v)?'#'+v.toLowerCase():null;
+}
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pt=(a,r)=>{const t=a*Math.PI/180;return[+(CX+r*Math.sin(t)).toFixed(2),+(CY-r*Math.cos(t)).toFixed(2)]};
+function arc(h,r0,r1,w){
+  const [ax,ay]=pt(h-w/2,r1),[bx,by]=pt(h+w/2,r1),[cx,cy]=pt(h+w/2,r0),[dx,dy]=pt(h-w/2,r0);
+  return`M${ax} ${ay}A${r1} ${r1} 0 0 1 ${bx} ${by}L${cx} ${cy}A${r0} ${r0} 0 0 0 ${dx} ${dy}Z`;
+}
+
+function drawWheel(){
+  let defs='',body='';
+  const order=items.slice().sort((a,b)=>(a.id===selected)-(b.id===selected));
+  order.forEach(it=>{
+    const {h,s,neutral,opp}=info(it.hex);
+    const cls='item'+(selected&&selected!==it.id?' dim':'')+(it.id===justAdded?' pop':'');
+    let g=`<g class="${cls}" data-id="${it.id}">`;
+    if(neutral){
+      g+=`<circle class="dot" cx="${CX}" cy="${CY}" r="11" fill="${it.hex}"/>`;
+    }else{
+      const rd=s*(RI-12),[x1,y1]=pt(h,rd),[x2,y2]=pt(h+180,rd);
+      defs+=`<linearGradient id="g${it.id}" gradientUnits="userSpaceOnUse" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"><stop offset="0" stop-color="${it.hex}"/><stop offset="1" stop-color="${opp}"/></linearGradient>`;
+      g+=`<path d="${arc(h,RI,RO,22)}" fill="${it.hex}"/><path d="${arc(h+180,RI,RO,22)}" fill="${opp}"/>`;
+      g+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="url(#g${it.id})" stroke-width="4" stroke-linecap="round"/>`;
+      g+=`<circle class="dot" cx="${x1}" cy="${y1}" r="10" fill="${it.hex}"/><circle class="dot" cx="${x2}" cy="${y2}" r="7" fill="${opp}"/>`;
+    }
+    body+=g+'</g>';
+  });
+  const empty=items.length?'':`<text class="empty big" x="180" y="176">Blank canvas</text><text class="empty" x="180" y="200">Log a color to begin</text>`;
+  $('wheel').innerHTML=`<defs>${defs}</defs><circle class="track" cx="${CX}" cy="${CY}" r="160"/><circle class="guide" cx="${CX}" cy="${CY}" r="${RI-4}"/>`
+    +(items.length?`<line class="cross" x1="${CX-6}" y1="${CY}" x2="${CX+6}" y2="${CY}"/><line class="cross" x1="${CX}" y1="${CY-6}" x2="${CX}" y2="${CY+6}"/>`:'')+body+empty;
+}
+
+function drawList(){
+  const n=items.length;
+  $('count').textContent=n?`${n} color${n===1?'':'s'} logged`:'Nothing logged yet';
+  $('hint').textContent=n?'Tap a color to spotlight it on the wheel.':'Pick a color above, then tap Log color.';
+  $('list').innerHTML=items.slice().reverse().map(it=>{
+    const {neutral,opp}=info(it.hex),label=it.name||it.hex.toUpperCase();
+    const sub=(it.name?it.hex.toUpperCase()+', ':'')+(neutral?'neutral, its own opposite':'opposite '+opp.toUpperCase());
+    return`<li class="row${it.id===selected?' sel':''}"><button class="pick" type="button" data-id="${it.id}" aria-pressed="${it.id===selected}"><span class="chips"><i style="background:${it.hex}"></i><i style="background:${opp}"></i></span><span class="txt"><b>${esc(label)}</b><small>${esc(sub)}</small></span></button><button class="del" type="button" data-del="${it.id}" aria-label="Delete ${esc(label)}">Delete</button></li>`;
+  }).join('');
+}
+
+function render(){drawWheel();drawList();justAdded=null}
+
+function preview(){
+  const hex=norm($('hex').value);
+  if(!hex){$('ptxt').textContent='Enter a hex code such as #3A7BD5';$('pa').style.background=$('pb').style.background='transparent';return}
+  const {neutral,opp}=info(hex);
+  $('pa').style.background=hex;$('pb').style.background=opp;
+  $('ptxt').textContent=neutral?'Neutral, its own opposite':'Opposite '+opp.toUpperCase();
+}
+const msg=t=>{$('msg').textContent=t};
+
+$('picker').addEventListener('input',e=>{$('hex').value=e.target.value.toUpperCase();preview()});
+$('hex').addEventListener('input',()=>{const h=norm($('hex').value);if(h)$('picker').value=h;preview()});
+function add(){
+  const hex=norm($('hex').value);
+  if(!hex){msg('That isn’t a valid hex code. Try something like #3A7BD5.');return}
+  if(items.some(i=>i.hex===hex)){msg('That color is already on the wheel.');return}
+  const id='c'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+  items.push({id,hex,name:$('name').value.trim()});
+  justAdded=id;selected=null;save();render();
+  msg(`Logged ${hex.toUpperCase()} with its opposite ${info(hex).opp.toUpperCase()}.`);
+  $('name').value='';
+}
+$('log').addEventListener('click',add);
+$('hex').addEventListener('keydown',e=>{if(e.key==='Enter')add()});
+$('name').addEventListener('keydown',e=>{if(e.key==='Enter')add()});
+
+$('list').addEventListener('click',e=>{
+  const d=e.target.closest('[data-del]');
+  if(d){
+    items=items.filter(i=>i.id!==d.dataset.del);
+    if(selected===d.dataset.del)selected=null;
+    save();render();msg('Color deleted.');$('count').focus();return;
+  }
+  const p=e.target.closest('.pick');
+  if(p){selected=selected===p.dataset.id?null:p.dataset.id;render()}
+});
+$('wheel').addEventListener('click',e=>{
+  const g=e.target.closest('.item');
+  selected=g&&selected!==g.dataset.id?g.dataset.id:null;render();
+});
+
+const cv=$('shot'),g2=cv.getContext('2d',{willReadFrequently:true}),mark=$('mark');
+let imgUrl=null,sampling=false;
+$('imgbtn').addEventListener('click',()=>$('file').click());
+$('file').addEventListener('change',e=>{
+  const f=e.target.files&&e.target.files[0];
+  if(!f)return;
+  const url=URL.createObjectURL(f),im=new Image();
+  im.onload=()=>{
+    if(imgUrl)URL.revokeObjectURL(imgUrl);
+    imgUrl=url;
+    const sc=Math.min(1,1400/Math.max(im.naturalWidth,im.naturalHeight));
+    cv.width=Math.max(1,Math.round(im.naturalWidth*sc));cv.height=Math.max(1,Math.round(im.naturalHeight*sc));
+    g2.fillStyle='#fff';g2.fillRect(0,0,cv.width,cv.height);
+    g2.drawImage(im,0,0,cv.width,cv.height);
+    mark.style.display='none';
+    $('dropper').hidden=false;
+    msg('Tap or drag on the image to sample a color.');
+  };
+  im.onerror=()=>{URL.revokeObjectURL(url);msg('That file couldn’t be read as an image. Try a JPG, PNG or WebP.')};
+  im.src=url;
+});
+function sample(e){
+  const r=cv.getBoundingClientRect();
+  const px=Math.min(cv.width-1,Math.max(0,Math.floor((e.clientX-r.left)*cv.width/r.width)));
+  const py=Math.min(cv.height-1,Math.max(0,Math.floor((e.clientY-r.top)*cv.height/r.height)));
+  const x0=Math.max(0,px-1),y0=Math.max(0,py-1),w=Math.min(cv.width,px+2)-x0,h=Math.min(cv.height,py+2)-y0;
+  const d=g2.getImageData(x0,y0,w,h).data,n=w*h;
+  let R=0,G=0,B=0;
+  for(let i=0;i<d.length;i+=4){R+=d[i];G+=d[i+1];B+=d[i+2]}
+  const hex='#'+[R,G,B].map(v=>Math.round(v/n).toString(16).padStart(2,'0')).join('');
+  $('picker').value=hex;$('hex').value=hex.toUpperCase();preview();
+  mark.style.display='block';
+  mark.style.left=(cv.offsetLeft+Math.min(r.width,Math.max(0,e.clientX-r.left)))+'px';
+  mark.style.top=(cv.offsetTop+Math.min(r.height,Math.max(0,e.clientY-r.top)))+'px';
+  mark.style.background=hex;
+}
+cv.addEventListener('pointerdown',e=>{sampling=true;cv.setPointerCapture(e.pointerId);sample(e)});
+cv.addEventListener('pointermove',e=>{if(sampling)sample(e)});
+const endSample=()=>{if(!sampling)return;sampling=false;msg('Sampled '+$('hex').value+'. Tap Log color to add it.')};
+cv.addEventListener('pointerup',endSample);
+cv.addEventListener('pointercancel',endSample);
+$('imgclear').addEventListener('click',()=>{
+  $('dropper').hidden=true;mark.style.display='none';
+  if(imgUrl){URL.revokeObjectURL(imgUrl);imgUrl=null}
+  $('file').value='';msg('');
+});
+if('ResizeObserver' in window)new ResizeObserver(()=>{mark.style.display='none'}).observe(cv);
+
+preview();render();
+})();
+</script>
+</body>
+</html>
